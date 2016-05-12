@@ -72,13 +72,18 @@ def process_setup(filename, printer, setup_args):
         else:
             _logger.info('No changes, not writing file')
 
-def process_file(filename, printer):
+def process_file(filename, printer, dt, data_only):
     with open(filename, 'rb') as f:
         size = os.fstat(f.fileno()).st_size
         if size == info.size():
             # Info files
             t = info.parse_from_file(f)
-            printer.print_info(t)
+            # Initialize time from info file
+            dt[0] = datetime.datetime(2000 + t.init_date_year,
+                    t.init_date_month, t.init_date_day,
+                    t.init_time_hour, t.init_time_minute)
+            if not data_only:
+                printer.print_info(t)
         else:
             # Data files.
 
@@ -89,8 +94,6 @@ def process_file(filename, printer):
                 return
 
             eof = 4 * b'\xff'
-            # Unknown date and time, initialize with something low.
-            dt = datetime.datetime(1970, 1, 1)
             while True:
                 if len(buf) < len(eof):
                     buf += f.read(len(eof) - len(buf))
@@ -108,7 +111,7 @@ def process_file(filename, printer):
                     buf += f.read(data_hdr.size() - len(buf))
                     t = data_hdr.unpack(buf)
                     # New time reference!
-                    dt = datetime.datetime(2000 + t.record_year,
+                    dt[0] = datetime.datetime(2000 + t.record_year,
                             t.record_month, t.record_day,
                             t.record_hour, t.record_minute)
                     printer.print_data_header(t)
@@ -116,10 +119,10 @@ def process_file(filename, printer):
                     buf += f.read(data.size() - len(buf))
                     t = data.unpack(buf)
                     # For time reference
-                    date_str = dt.strftime('%Y-%m-%d %H:%M')
+                    date_str = dt[0].strftime('%Y-%m-%d %H:%M')
                     printer.print_data(t, date=date_str)
                     # Assume that this is called for every minute
-                    dt += datetime.timedelta(minutes=1)
+                    dt[0] += datetime.timedelta(minutes=1)
 
                 # Clear buffer since it is processed
                 buf = b''
@@ -154,10 +157,14 @@ parser.add_argument('-s', '--setup', metavar='key=value', nargs='*',
                     help='Process a setupel3.bin file. Optional parameters \
                     can be given to set a field (-s unit_id=1 for example). \
                     If no parameters are given, the current values are printed')
+parser.add_argument('-o', '--data-only', action='store_true',
+                    help='Use info files only for updating the initial \
+                    timestamp for data files, do not print their contents')
 parser.add_argument('files', metavar='binfile', nargs='+',
                     help='info or data files (.bin) from SD card. If --setup \
                     is given, then this is the output file (and input for \
-                    defaults)')
+                    defaults). The order of files are significant when a \
+                    timestamp is involved')
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -173,6 +180,9 @@ if __name__ == '__main__':
             _logger.error('Only one file can be specified for set-up')
             sys.exit(1)
 
+    # Unknown date and time, initialize with something low.
+    dt = [datetime.datetime(1970, 1, 1)]
+
     for filename in args.files:
         try:
             printer = myprinter(filename, separator=args.delimiter)
@@ -183,7 +193,7 @@ if __name__ == '__main__':
             process_setup(args.files[0], myprinter, args.setup)
         else:
             # Display current filename for multiple files
-            if files_count > 1:
+            if files_count > 1 and not args.data_only:
                 print('# ' + filename)
 
-            process_file(filename, printer)
+            process_file(filename, printer, dt, args.data_only)

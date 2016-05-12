@@ -26,8 +26,8 @@ Since this program is a console application, you need to open a terminal (or
 cmd) first. Available options:
 
     $ python el4000.py --help
-    usage: el4000.py [-h] [-p {csv,va,base,watt,raw}] [-d DELIMITER] [-v]
-                     [-s [PARAMS [PARAMS ...]]]
+    usage: el4000.py [-h] [-p {raw,base,watt,va,csv}] [-d DELIMITER] [-v]
+                     [-s [key=value [key=value ...]]] [-o]
                      binfile [binfile ...]
 
     Energy Logger 4000 utility
@@ -35,14 +35,15 @@ cmd) first. Available options:
     positional arguments:
       binfile               info or data files (.bin) from SD card. If --setup is
                             given, then this is the output file (and input for
-                            defaults)
+                            defaults). The order of files are significant when a
+                            timestamp is involved
 
     optional arguments:
       -h, --help            show this help message and exit
-      -p {csv,va,base,watt,raw}, --printer {csv,va,base,watt,raw}
-                            Output formatter (default base)
+      -p {raw,base,watt,va,csv}, --printer {raw,base,watt,va,csv}
+                            Output formatter (default 'base')
       -d DELIMITER, --delimiter DELIMITER
-                            Output delimiter for CSV output (default ,)
+                            Output delimiter for CSV output (default ',')
       -v, --verbose         Increase logging level (twice for extra verbose)
       -s [key=value [key=value ...]], --setup [key=value [key=value ...]]
                             Process a setupel3.bin file. Optional parameters can
@@ -63,6 +64,21 @@ Its content may look like:
     2014-06-27 13:14,236.5,0.206,0.420
     2014-06-27 13:15,235.7,0.199,0.420
     2014-06-27 13:16,237.3,0.204,0.420
+    ...
+
+If you happen to see "1970-01-01" as timestamp, be sure to include the info
+files (102 bytes) before others (and use `--data-only` to hide the contents of
+this info file). Compare:
+
+    $ python el4000.py -p csv A07EF88B.BIN
+    voltage,current,power_factor
+    1970-01-01 00:00,238.5,0.000,0.000
+    1970-01-01 00:01,239.5,0.000,0.000
+    ...
+    $ python el4000.py -p csv --data-only A07EF88A.BIN A07EF88B.BIN
+    voltage,current,power_factor
+    2014-06-25 16:53,238.5,0.000,0.000
+    2014-06-25 16:54,239.5,0.000,0.000
     ...
 
 ### Example: show information file
