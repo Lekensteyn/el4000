@@ -6,6 +6,13 @@
 import math
 from defs import info, data
 
+# Python 2.7 compatibility
+if b'' == '':
+    import functools, itertools
+    iterbytes = functools.partial(itertools.imap, ord)
+else:
+    iterbytes = iter
+
 class BasePrinter(object):
     """Prints the info, data header or data in verbose form."""
     def __init__(self, filename):
@@ -25,7 +32,7 @@ class RawPrinter(BasePrinter):
             for name in data.names]
         # Convert bytes to hex and print them
         print(date + ' ' + ' '.join(
-            ''.join('{0:02x}'.format(b) for b in bs)
+            ''.join('{0:02x}'.format(b) for b in iterbytes(bs))
                     for bs in all_bs))
 
 class CSVPrinter(BasePrinter):
