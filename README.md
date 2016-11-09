@@ -59,7 +59,7 @@ Given a data file `A0810702.BIN`, you can write a `results.csv` file with:
 
 Its content may look like:
 
-    voltage,current,power_factor
+    timestamp,voltage,current,power_factor
     2014-06-27 13:13,237.1,0.215,0.420
     2014-06-27 13:14,236.5,0.206,0.420
     2014-06-27 13:15,235.7,0.199,0.420
@@ -71,12 +71,12 @@ files (102 bytes) before others (and use `--data-only` to hide the contents of
 this info file). Compare:
 
     $ python el4000.py -p csv A07EF88B.BIN
-    voltage,current,power_factor
+    timestamp,voltage,current,power_factor
     1970-01-01 00:00,238.5,0.000,0.000
     1970-01-01 00:01,239.5,0.000,0.000
     ...
     $ python el4000.py -p csv --data-only A07EF88A.BIN A07EF88B.BIN
-    voltage,current,power_factor
+    timestamp,voltage,current,power_factor
     2014-06-25 16:53,238.5,0.000,0.000
     2014-06-25 16:54,239.5,0.000,0.000
     ...
