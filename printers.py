@@ -44,7 +44,7 @@ class CSVPrinter(BasePrinter):
         pass
     def print_data(self, t, date):
         if not self.printed_header:
-            print(self.separator.join(data.names))
+            print(self.separator.join(["timestamp"] + data.names))
             self.printed_header = True
         print('{1}{0}{2:5.1f}{0}{3:5.3f}{0}{4:5.3f}'
             .format(self.separator, date, *t))
