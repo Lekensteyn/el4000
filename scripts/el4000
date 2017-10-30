@@ -9,8 +9,8 @@ from argparse import ArgumentParser
 import datetime
 import logging
 
-from defs import info, data_hdr, data, setup, SETUP_MAGIC, STARTCODE
-import printers
+from el4000.defs import info, data_hdr, data, setup, SETUP_MAGIC, STARTCODE
+import el4000.printers as printers
 
 _logger = logging.getLogger(__name__)
 
